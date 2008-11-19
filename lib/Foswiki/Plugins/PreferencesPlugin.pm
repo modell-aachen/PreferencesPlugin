@@ -1,7 +1,7 @@
 # Plugin for Foswiki - The Free Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2005-2007  TWiki Contributors.
-# All Rights Reserved. TWiki Contributors are listed in the
+# Copyright (C) 2005-2007  Foswiki Contributors.
+# All Rights Reserved. Foswiki Contributors are listed in the
 # AUTHORS file in the root of this distribution.
 # NOTE: Please extend that file, not this notice.
 #
@@ -21,12 +21,12 @@
 # Handle continuation lines (see Prefs::parseText). These should always
 # go into a text area.
 
-package TWiki::Plugins::PreferencesPlugin;
+package Foswiki::Plugins::PreferencesPlugin;
 
 use strict;
 
-require TWiki::Func;    # The plugins API
-require TWiki::Plugins; # For the API version
+require Foswiki::Func;    # The plugins API
+require Foswiki::Plugins; # For the API version
 
 use vars qw( $VERSION $RELEASE @shelter );
 
@@ -48,8 +48,8 @@ my $END_MARKER    = $MARKER.'ENDPREF'.$MARKER;
 
 sub initPlugin {
     # check for Plugins.pm versions
-    if( $TWiki::Plugins::VERSION < 1.026 ) {
-        TWiki::Func::writeWarning( 'Version mismatch between PreferencesPlugin and Plugins.pm' );
+    if( $Foswiki::Plugins::VERSION < 1.026 ) {
+        Foswiki::Func::writeWarning( 'Version mismatch between PreferencesPlugin and Plugins.pm' );
         return 0;
     }
     @shelter = ();
@@ -64,27 +64,27 @@ sub beforeCommonTagsHandler {
     return unless ( $_[0] =~ m/%EDITPREFERENCES(?:{(.*?)})?%/ );
 
     require CGI;
-    require TWiki::Attrs;
+    require Foswiki::Attrs;
     my $formDef;
-    my $attrs = new TWiki::Attrs( $1 );
+    my $attrs = new Foswiki::Attrs( $1 );
     if( defined( $attrs->{_DEFAULT} )) {
-        my( $formWeb, $form ) = TWiki::Func::normalizeWebTopicName(
+        my( $formWeb, $form ) = Foswiki::Func::normalizeWebTopicName(
             $web, $attrs->{_DEFAULT} );
 
         # SMELL: Unpublished API. No choice, though :-(
-        require TWiki::Form;    # SMELL
+        require Foswiki::Form;    # SMELL
         $formDef =
-          new TWiki::Form( $TWiki::Plugins::SESSION, $formWeb, $form );
+          new Foswiki::Form( $Foswiki::Plugins::SESSION, $formWeb, $form );
     }
 
-    my $query = TWiki::Func::getCgiQuery();
+    my $query = Foswiki::Func::getCgiQuery();
 
     my $action = lc $query->param( 'prefsaction' );
     $query->Delete( 'prefsaction' );
     $action =~ s/\s.*$//;
 
     if ( $action eq 'edit' ) {
-        TWiki::Func::setTopicEditLock( $web, $topic, 1 );
+        Foswiki::Func::setTopicEditLock( $web, $topic, 1 );
         
         # Replace setting values by form fields but not inside comments Item4816
         my $outtext = '';
@@ -104,7 +104,7 @@ sub beforeCommonTagsHandler {
           
         $_[0] =~ s/%EDITPREFERENCES({.*?})?%/
           _generateControlButtons($web, $topic)/ge;
-        my $viewUrl = TWiki::Func::getScriptUrl(
+        my $viewUrl = Foswiki::Func::getScriptUrl(
             $web, $topic, 'viewauth' );
         my $startForm = CGI::start_form(
             -name => 'editpreferences',
@@ -118,18 +118,18 @@ sub beforeCommonTagsHandler {
     }
 
     if( $action eq 'cancel' ) {
-        TWiki::Func::setTopicEditLock( $web, $topic, 0 );
+        Foswiki::Func::setTopicEditLock( $web, $topic, 0 );
 
     } elsif( $action eq 'save' ) {
 
-        my( $meta, $text ) = TWiki::Func::readTopic( $web, $topic );
+        my( $meta, $text ) = Foswiki::Func::readTopic( $web, $topic );
         $text =~ s(^((?:\t|   )+\*\sSet\s)(\w+)\s\=\s(.*)$)
           ($1._saveSet($query, $web, $topic, $2, $3, $formDef))mgeo;
-        TWiki::Func::saveTopic( $web, $topic, $meta, $text );
-        TWiki::Func::setTopicEditLock( $web, $topic, 0 );
+        Foswiki::Func::saveTopic( $web, $topic, $meta, $text );
+        Foswiki::Func::setTopicEditLock( $web, $topic, 0 );
         # Finish with a redirect so that the *new* values are seen
-        my $viewUrl = TWiki::Func::getScriptUrl( $web, $topic, 'view' );
-        TWiki::Func::redirectCgiQuery( undef, $viewUrl );
+        my $viewUrl = Foswiki::Func::getScriptUrl( $web, $topic, 'view' );
+        Foswiki::Func::redirectCgiQuery( undef, $viewUrl );
         return;
     }
     # implicit action="view", or drop through from "save" or "cancel"
@@ -166,7 +166,7 @@ sub _generateEditField {
 
     if( $formDef ) {
         my $fieldDef;
-        if (defined(&TWiki::Form::getField)) {
+        if (defined(&Foswiki::Form::getField)) {
             # TWiki 4.2 and later
             $fieldDef = $formDef->getField( $name );
         } else {
@@ -174,7 +174,7 @@ sub _generateEditField {
             $fieldDef = _getField( $formDef, $name );
         }
         if ( $fieldDef ) {
-            if( defined(&TWiki::Form::renderFieldForEdit)) {
+            if( defined(&Foswiki::Form::renderFieldForEdit)) {
                 # TWiki < 4.2 SMELL: use of unpublished core function
                 ( $extras, $html ) =
                   $formDef->renderFieldForEdit( $fieldDef, $web, $topic, $value);
@@ -204,7 +204,7 @@ sub _generateEditField {
 sub _generateEditButton {
     my( $web, $topic ) = @_;
 
-    my $viewUrl = TWiki::Func::getScriptUrl(
+    my $viewUrl = Foswiki::Func::getScriptUrl(
         $web, $topic, 'viewauth' );
     my $text = CGI::start_form(
         -name => 'editpreferences',
